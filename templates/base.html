@@ -21,4 +21,25 @@
 <script src="https://unpkg.com/htmx.org@1.9.12"
         integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2" crossorigin="anonymous">
 </script>
+
+<script>
+    document.addEventListener('htmx:afterRequest', function(event) {
+        if (event.detail.elt.matches('form[hx-get="/autocomplete/cities/"]')) {
+            var data = JSON.parse(event.detail.xhr.responseText);
+            var resultsContainer = document.getElementById('autocomplete-results');
+            resultsContainer.innerHTML = '';  // Очищаем результаты от предыдущих запросов
+            if (data.length > 0) {
+                var list = document.createElement('ul');
+                data.forEach(function(item) {
+                    var listItem = document.createElement('li');
+                    listItem.textContent = item.name;
+                    list.appendChild(listItem);
+                });
+                resultsContainer.appendChild(list);
+            } else {
+                resultsContainer.textContent = 'Нет результатов';
+            }
+        }
+    });
+</script>
 </html>

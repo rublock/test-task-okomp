@@ -2,10 +2,13 @@ import logging
 import os
 
 from django.conf import settings
-from django.shortcuts import redirect
-from django.views.generic import ListView, TemplateView
+from django.http import JsonResponse
+from django.shortcuts import redirect, render
+from django.urls import reverse_lazy
+from django.views.generic import ListView, TemplateView, FormView
 
-from .models import Session, SessionUrl
+from .forms import CityForm
+from .models import Session, SessionUrl, City
 from .services.coordinates import get_coordinates
 
 logger = logging.getLogger(__name__)
@@ -50,10 +53,32 @@ class HomePage(TemplateView):
             return super().get(request, *args, **kwargs)
 
 
-class FloatFormView(TemplateView):
-    """Форма на htmx, для запроса количества котов"""
+class WeatherFormView(FormView):
+    """Форма запроса погоды по городу"""
 
-    template_name = "mainapp/float_form.html"
+    template_name = "mainapp/weather_form.html"
+    form_class = CityForm
+    success_url = reverse_lazy('mainapp:weather')
+
+    def form_valid(self, form):
+        form.save()
+        return super().form_valid(form)
+
+
+def autocomplete_cities(request):
+    city_name = request.GET.get('city')
+    cities = City.objects.filter(name__istartswith=city_name)
+    if cities.exists():  # Проверяем, есть ли города, удовлетворяющие условию
+        data = [{'name': city.name} for city in cities]
+        return JsonResponse(data[:10], safe=False)
+    else:
+        return JsonResponse([], safe=False)
+
+
+
+
+
+
 
 
 class CatListView(ListView):
