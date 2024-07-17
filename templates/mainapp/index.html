@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block content %}
+
+<button type="submit" class="btn btn-outline-dark" hx-trigger="mouseover"
+        hx-get="/float_form" hx-swap="outerHTML">Узнать погоду!</button>
+
+{% endblock %}

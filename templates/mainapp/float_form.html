@@ -1,0 +1,9 @@
+<div class="d-flex justify-content-center align-items-center">
+  <form action="{% url 'mainapp:weather' %}" method="get">
+    {% csrf_token %}
+    <label>В каком городе вы хотели бы узнать погоду?</label>
+    <input type="text" class="form-control" style="width: 150%;" name="city">
+    <br>
+    <button type="submit" class="btn btn-outline-dark">Узнать погоду!</button>
+  </form>
+</div>
