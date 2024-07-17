@@ -4,11 +4,12 @@ import os
 from django.conf import settings
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
+from django.views import View
 from django.views.generic import ListView, TemplateView, FormView
 
 from .forms import CityForm
-from .models import Session, SessionUrl, City
+from .models import Session, City, Temperature
 from .services.coordinates import get_coordinates
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,7 @@ class HomePage(TemplateView):
 
         key = Session.objects.get(key=sessionid)
         id = key.id
-        if SessionUrl.objects.filter(session_key_id=id).exists():
+        if Temperature.objects.filter(session=id).exists():
             return redirect("weather/")
         else:
             return super().get(request, *args, **kwargs)
@@ -65,28 +66,23 @@ class WeatherFormView(FormView):
         return super().form_valid(form)
 
 
-def autocomplete_cities(request):
-    city_name = request.GET.get('city')
-    cities = City.objects.filter(name__istartswith=city_name)
-    if cities.exists():  # Проверяем, есть ли города, удовлетворяющие условию
-        data = [{'name': city.name} for city in cities]
-        return JsonResponse(data[:10], safe=False)
-    else:
-        return JsonResponse([], safe=False)
+class CityAutocompleteView(View):
+    def get(self, request, *args, **kwargs):
+        city_name = request.GET.get('city', '')
+        cities = City.objects.filter(name__istartswith=city_name)
+        data = [{'name': city.name} for city in cities[:10]]
+        return JsonResponse(data, safe=False)
+
+    def post(self, request, *args, **kwargs):
+        return redirect(reverse('mainapp:weather'))
 
 
-
-
-
-
-
-
-class CatListView(ListView):
-    """Страница с котами"""
+class WeatherListView(ListView):
+    """Страница с погодой"""
 
     template_name = "mainapp/weather.html"
     context_object_name = "weather"
-    paginate_by = 2
+    paginate_by = 10
 
     def get_queryset(self):
         """
@@ -96,23 +92,27 @@ class CatListView(ListView):
         Отправляет в браузер content со списком url котов из БД.
         """
         sessionid = self.request.session.session_key
-        session = Session.objects.get(key=sessionid)
         content = []
         key = Session.objects.get(key=sessionid)
-        id = key.id
+        session_key_id = key.id
 
-        if SessionUrl.objects.filter(session_key_id=id).exists():
-            urls = SessionUrl.objects.filter(session_key_id=id)
-            for i in urls:
-                content.append(i.url)
+        if Temperature.objects.filter(session=session_key_id).exists():
+            city = Temperature.objects.filter(session=session_key_id)
+            for i in city:
+                content.append(i.city)
             return content
 
         else:
             city = self.request.GET.get("city")
+            city_name = City.objects.get(name=city)
+            city_id = city_name.id
             content = get_coordinates(TOKEN, SECRET_KEY, city)
             logger.info(f"LOG MESSAGE: {content}")
-            for i in content:
-                if not SessionUrl.objects.filter(session_key=session, url=i).exists():
-                    url = SessionUrl(session_key=session, url=i)
-                    url.save()
+            for dict in content:
+                for key, value in dict.items():
+                    if not Temperature.objects.filter(session=session_key_id).exists():
+                        temperature = Temperature(time=value, temperature=key, city_id=city_id, session_id=session_key_id)
+                        #TODO неправильно записывает время, правильно передать данные в content
+                        #TODO вернуть итерируеммый объек и проитерировать его в шаблоне
+                        temperature.save()
             return content

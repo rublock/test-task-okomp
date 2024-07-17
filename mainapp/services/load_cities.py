@@ -14,9 +14,6 @@ with open(BASE_DIR / "var/cities.json", 'r') as file:
 
 for city_data in cities_data["city"]:
     city = City(
-        city_id=city_data["city_id"],
-        country_id=city_data["country_id"],
-        region_id=city_data["region_id"],
         name=city_data["name"]
     )
     city.save()

@@ -1,5 +1,5 @@
 <div class="d-flex justify-content-center align-items-center">
-  <form hx-get="/autocomplete/cities/" hx-trigger="keyup" hx-target="#autocomplete-results">
+  <form action="{% url 'mainapp:weather' %}" hx-get="/autocomplete/cities/" hx-trigger="keyup" hx-target="#autocomplete-results">
     {% csrf_token %}
     <label>В каком городе вы хотели бы узнать погоду?</label>
     <input type="text" class="form-control" style="width: 150%;" name="city">

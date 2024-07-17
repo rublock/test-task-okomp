@@ -4,7 +4,7 @@ import requests_cache
 from retry_requests import retry
 
 
-def get_weather():
+def get_weather(coordinates):
     cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
@@ -13,8 +13,8 @@ def get_weather():
     # The order of variables in hourly or daily is important to assign them correctly below
     url = "https://api.open-meteo.com/v1/forecast"
     params = {
-        "latitude": 55.7540584,
-        "longitude": 37.62049,
+        "latitude": coordinates['geo_lat'],
+        "longitude": coordinates['geo_lon'],
         "elevation": 2,
         "hourly": "temperature_2m",
     }
@@ -40,7 +40,10 @@ def get_weather():
     }
 
     hourly_dataframe = pd.DataFrame(data=hourly_data)
-    print(hourly_dataframe)
 
+    dict = pd.DataFrame(hourly_dataframe).to_dict()
+    list = []
+    list.append(dict['date'])
+    list.append(dict['temperature_2m'])
 
-get_weather()
+    return list
