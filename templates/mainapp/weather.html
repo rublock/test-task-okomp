@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 
+
+
 <ul class="list-unstyled" >
+    {{ city }}
+    <br>
+    <br>
     {% for key, value in weather.items %}
         <div class="d-flex justify-content-center align-items-center">
             {{ key }}: {{ value }}

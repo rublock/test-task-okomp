@@ -49,7 +49,8 @@ def get_weather(coordinates):
         date.append(i)
 
     for j in data_dict['temperature_2m'].values():
-        temp.append(j)
+        j_round = round(j, 2)
+        temp.append(j_round)
 
     result_dict = dict(zip(date, temp))
 

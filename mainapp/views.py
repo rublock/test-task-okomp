@@ -117,3 +117,16 @@ class WeatherListView(ListView):
                     temperature = Temperature(time=key, temperature=value, city_id=city_id, session_id=session_key_id)
                     temperature.save()
             return content
+
+    def get_context_data(self, **kwargs):
+        sessionid = self.request.session.session_key
+        key = Session.objects.get(key=sessionid)
+        session_key_id = key.id
+
+        if Temperature.objects.filter(session=session_key_id).exists():
+            sql_data = Temperature.objects.filter(session=session_key_id)
+            city = sql_data[0].city
+
+        context = super().get_context_data(**kwargs)
+        context['city'] = f'Почасовая погода в {city} на ближашие дни'
+        return context
