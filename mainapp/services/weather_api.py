@@ -5,6 +5,9 @@ from retry_requests import retry
 
 
 def get_weather(coordinates):
+    """
+    Получение почасовой погоды по координатам на высоте 2 метра над уровнем моря
+    """
     cache_session = requests_cache.CachedSession(".cache", expire_after=3600)
     retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
     openmeteo = openmeteo_requests.Client(session=retry_session)
@@ -20,10 +23,6 @@ def get_weather(coordinates):
     }
     responses = openmeteo.weather_api(url, params=params)
     response = responses[0]
-    print(f"Coordinates {response.Latitude()}°N {response.Longitude()}°E")
-    print(f"Elevation {response.Elevation()} m asl")
-    print(f"Timezone {response.Timezone()} {response.TimezoneAbbreviation()}")
-    print(f"Timezone difference to GMT+0 {response.UtcOffsetSeconds()} s")
 
     # Process hourly data. The order of variables needs to be the same as requested.
     hourly = response.Hourly()
@@ -41,9 +40,17 @@ def get_weather(coordinates):
 
     hourly_dataframe = pd.DataFrame(data=hourly_data)
 
-    dict = pd.DataFrame(hourly_dataframe).to_dict()
-    list = []
-    list.append(dict['date'])
-    list.append(dict['temperature_2m'])
+    data_dict = pd.DataFrame(hourly_dataframe).to_dict()
 
-    return list
+    date = []
+    temp = []
+
+    for i in data_dict['date'].values():
+        date.append(i)
+
+    for j in data_dict['temperature_2m'].values():
+        temp.append(j)
+
+    result_dict = dict(zip(date, temp))
+
+    return result_dict
