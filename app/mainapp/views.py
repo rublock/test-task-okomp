@@ -128,5 +128,5 @@ class WeatherListView(ListView):
             city = sql_data[0].city
 
         context = super().get_context_data(**kwargs)
-        context['city'] = f'Почасовая погода в {city} на ближашие дни'
+        context['city'] = f'Почасовая погода в городе {city} на ближашие дни'
         return context
