@@ -1,0 +1,28 @@
+version: '3.9'
+
+services:
+  app:
+    container_name: django
+    restart: always
+    build:
+      context: .
+    volumes:
+      - ./app:/app
+      - static-data:/vol/web
+    env_file:
+      - .env
+
+  proxy:
+    container_name: nginx
+    restart: always
+    build:
+      context: ./proxy
+    ports:
+      - 80:8000
+    volumes:
+      - static-data:/vol/static
+    depends_on:
+      - app
+
+volumes:
+  static-data:
